@@ -60,10 +60,7 @@ def ajouter_utilisateur():
 
         co = get_connection()
         curseur = co.cursor()
-        requete = """
-            INSERT INTO users (prenom, nom, code_carte, z_bureaux, z_stock, z_info, z_technique) 
-            VALUES (%s, %s, %s, %s,%s, %s, %s)
-        """
+        requete = "INSERT INTO users (prenom, nom, code_carte, z_bureaux, z_stock, z_info, z_technique) VALUES (%s, %s, %s, %s,%s, %s, %s)"
         curseur.execute(requete, (prenom, nom, code_carte,acces_bureau,acces_stock,acces_informatique,acces_technique))
         co.commit()
         nb = curseur.rowcount
