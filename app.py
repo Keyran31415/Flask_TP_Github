@@ -1,0 +1,78 @@
+from flask import Flask, render_template ,request
+from database import get_connection
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+#*****************************************************************************************
+@app.route("/test")
+def accueil():
+    co = get_connection()
+    if co:
+        co.close()
+        return "Connexion MySQL réussie"
+    else:
+        return "Erreur de connexion MySQL"
+
+#*****************************************************************************************
+@app.route('/affichage_logs')
+def affichage_logs():
+    co=get_connection()
+    curseur = co.cursor()
+    requete_sql = "SELECT * FROM logs_acces "
+    curseur.execute(requete_sql)
+    logs = curseur.fetchall()
+    curseur.close()
+    co.close()
+    print(logs)
+    return render_template('affichage_logs.html', logs=logs)
+
+#*****************************************************************************************
+
+@app.route("/delete")
+def delete():
+    id_user=6
+    co = get_connection()
+    curseur = co.cursor()
+    requete = "DELETE FROM users WHERE id = %s"
+    curseur.execute(requete, id_user)
+    co.commit()
+    print(curseur.rowcount, "ligne supprimée")
+    curseur.close()
+    co.close()
+    return "Suppression terminée"
+
+
+
+@app.route("/ajouter_utilisateur", methods=["GET", "POST"])
+def ajouter_utilisateur():
+    if request.method == "POST":
+        prenom = request.form["prenom"]
+        nom = request.form["nom"]
+        code_carte = request.form["code_carte"]
+        acces_bureau = request.form["acces_bureau"]
+        acces_stock = request.form["acces_stock"]
+        acces_informatique = request.form["acces_info"]
+        acces_technique = request.form["acces_technique"]
+
+        co = get_connection()
+        curseur = co.cursor()
+        requete = """
+            INSERT INTO users (prenom, nom, code_carte, z_bureaux, z_stock, z_info, z_technique) 
+            VALUES (%s, %s, %s, %s,%s, %s, %s)
+        """
+        curseur.execute(requete, (prenom, nom, code_carte,acces_bureau,acces_stock,acces_informatique,acces_technique))
+        co.commit()
+        nb = curseur.rowcount
+        curseur.close()
+        co.close()
+        return render_template("info_retour.html", res=f"utilisateur ajouté")
+
+    return render_template("ajouter_utilisateur.html")
+
+if __name__ == '__main__':
+    app.run()
+
